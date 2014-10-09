@@ -325,7 +325,7 @@ function get_image_tag($id, $alt, $title, $align, $size='medium') {
 
 	$html = '
 	<img src="' 
-		. esc_attr($img_src) . '" srcset="' . wp_get_attachment_image_src( $id, 'thumbnail' )[0] .' '. wp_get_attachment_image_src( $id, 'thumbnail' )[1] .', ' . wp_get_attachment_image_src( $id, 'medium' )[0] .' ' . wp_get_attachment_image_src( $id, 'medium' )[1] .', ' . wp_get_attachment_image_src( $id, 'full' )[0] .' ' . wp_get_attachment_image_src( $id, 'full' )[1] .', " alt="' . esc_attr($alt) . '" ' . $title . 'class="' . $class . '" />
+		. esc_attr($img_src) . '" srcset="' . wp_get_attachment_image_src( $id, 'thumbnail' )[0] .' '. wp_get_attachment_image_src( $id, 'thumbnail' )[1] .'w, ' . wp_get_attachment_image_src( $id, 'medium' )[0] .' ' . wp_get_attachment_image_src( $id, 'medium' )[1] .'w, ' . wp_get_attachment_image_src( $id, 'full' )[0] .' ' . wp_get_attachment_image_src( $id, 'full' )[1] .'w " alt="' . esc_attr($alt) . '" ' . $title . 'class="' . $class . '" />
 	';
 
 	/**
