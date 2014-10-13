@@ -323,7 +323,10 @@ function get_image_tag($id, $alt, $title, $align, $size='medium') {
 	 */
 	$class = apply_filters( 'get_image_tag_class', $class, $id, $align, $size );
 
-	$html = '<img src="' . esc_attr($img_src) . '" alt="' . esc_attr($alt) . '" ' . $title . $hwstring . 'class="' . $class . '" />';
+	$html = '
+	<img src="' 
+		. esc_attr($img_src) . '" srcset="' . wp_get_attachment_image_src( $id, 'thumbnail' )[0] .' '. wp_get_attachment_image_src( $id, 'thumbnail' )[1] .'w, ' . wp_get_attachment_image_src( $id, 'medium' )[0] .' ' . wp_get_attachment_image_src( $id, 'medium' )[1] .'w, ' . wp_get_attachment_image_src( $id, 'full' )[0] .' ' . wp_get_attachment_image_src( $id, 'full' )[1] .'w " alt="' . esc_attr($alt) . '" ' . $title . 'class="' . $class . '" />
+	';
 
 	/**
 	 * Filter the HTML content for the image tag.
@@ -719,8 +722,8 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param mixed $attr       Attributes for the image markup.
-		 * @param int   $attachment Image attachment post.
+		 * @param mixed $attr          Attributes for the image markup.
+		 * @param int   $attachment_id Image attachment ID.
 		 */
 		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment );
 		$attr = array_map( 'esc_attr', $attr );
@@ -959,6 +962,9 @@ function gallery_shortcode( $attr ) {
 	), $attr, 'gallery' );
 
 	$id = intval( $atts['id'] );
+	if ( 'RAND' == $atts['order'] ) {
+		$atts['orderby'] = 'none';
+	}
 
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts( array( 'include' => $atts['include'], 'post_status' => 'inherit', 'post_type' => 'attachment', 'post_mime_type' => 'image', 'order' => $atts['order'], 'orderby' => $atts['orderby'] ) );
@@ -1163,7 +1169,7 @@ add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
  *
  *     @type string  $type         Type of playlist to display. Accepts 'audio' or 'video'. Default 'audio'.
  *     @type string  $order        Designates ascending or descending order of items in the playlist.
- *                                 Accepts 'ASC', 'DESC'. Default 'ASC'.
+ *                                 Accepts 'ASC', 'DESC', or 'RAND'. Default 'ASC'.
  *     @type string  $orderby      Any column, or columns, to sort the playlist. If $ids are
  *                                 passed, this defaults to the order of the $ids array ('post__in').
  *                                 Otherwise default is 'menu_order ID'.
@@ -1240,6 +1246,9 @@ function wp_playlist_shortcode( $attr ) {
 	), $attr, 'playlist' );
 
 	$id = intval( $atts['id'] );
+	if ( 'RAND' == $atts['order'] ) {
+		$atts['orderby'] = 'none';
+	}
 
 	$args = array(
 		'post_status' => 'inherit',
@@ -2536,14 +2545,6 @@ function wp_plupload_default_settings() {
 		),
 	);
 
-	// Currently only iOS Safari supports multiple files uploading but iOS 7.x has a bug that prevents uploading of videos
-	// when enabled. See #29602.
-	if ( wp_is_mobile() && strpos( $_SERVER['HTTP_USER_AGENT'], 'OS 7_' ) !== false &&
-		strpos( $_SERVER['HTTP_USER_AGENT'], 'like Mac OS X' ) !== false ) {
-
-		$defaults['multi_selection'] = false;
-	}
-
 	/**
 	 * Filter the Plupload default settings.
 	 *
@@ -2645,11 +2646,6 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
-	} else {
-		$post_parent = false;
-	}
-
-	if ( $post_parent ) {
 		$parent_type = get_post_type_object( $post_parent->post_type );
 		if ( $parent_type && $parent_type->show_ui && current_user_can( 'edit_post', $attachment->post_parent ) ) {
 			$response['uploadedToLink'] = get_edit_post_link( $attachment->post_parent, 'raw' );
@@ -2939,7 +2935,7 @@ function wp_enqueue_media( $args = array() ) {
 		'noItemsFound'           => __( 'No items found.' ),
 		'insertIntoPost'         => $hier ? __( 'Insert into page' ) : __( 'Insert into post' ),
 		'unattached'             => __( 'Unattached' ),
-		'trash'                  => _x( 'Trash', 'noun' ),
+		'trash'                  => __( 'Trash' ),
 		'uploadedToThisPost'     => $hier ? __( 'Uploaded to this page' ) : __( 'Uploaded to this post' ),
 		'warnDelete'             => __( "You are about to permanently delete this item.\n  'Cancel' to stop, 'OK' to delete." ),
 		'warnBulkDelete'         => __( "You are about to permanently delete these items.\n  'Cancel' to stop, 'OK' to delete." ),
